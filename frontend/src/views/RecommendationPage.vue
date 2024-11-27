@@ -16,30 +16,34 @@
 export default {
   data() {
     return {
-      budget: this.$route.query.budget,
+      budget: null,
       recommendedItems: [],
       remainingBudget: 0,
     };
   },
   created() {
-    if (!this.budget) {
-      alert("Budget tidak ditemukan. Kembali ke halaman sebelumnya.");
+    // Ambil data budget dan selectedItems dari localStorage
+    const selectedItems =
+      JSON.parse(localStorage.getItem("selectedItems")) || [];
+    const budget = localStorage.getItem("budget");
+
+    if (!budget || selectedItems.length === 0) {
+      alert("Data tidak lengkap. Kembali ke halaman sebelumnya.");
       this.$router.push("/budget");
     } else {
-      this.fetchRecommendations();
+      this.budget = budget;
+      this.fetchRecommendations(selectedItems);
     }
   },
   methods: {
-    fetchRecommendations() {
-      const selectedItems =
-        JSON.parse(localStorage.getItem("selectedItems")) || [];
+    fetchRecommendations(selectedItems) {
       const requestData = {
         budget: this.budget,
         items: selectedItems,
       };
 
       fetch("/items/recommendation/", {
-        method: "POST", // Ensure the request method is POST
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
@@ -48,13 +52,11 @@ export default {
         .then((res) => res.json())
         .then((data) => {
           console.log("Data Rekomendasi dari Backend:", data);
-          if (data.recommendations) {
+          if (data.recommendations && data.recommendations.length > 0) {
             this.recommendedItems = data.recommendations;
             this.remainingBudget = data.remaining_budget;
           } else {
-            alert(
-              "Tidak ada rekomendasi yang tersedia berdasarkan budget Anda."
-            );
+            alert(data.message || "Tidak ada rekomendasi yang tersedia.");
           }
         })
         .catch((err) => {

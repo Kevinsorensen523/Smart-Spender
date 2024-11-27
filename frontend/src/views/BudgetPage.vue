@@ -60,13 +60,6 @@ export default {
         })
         .catch((error) => console.error("Error fetching items:", error));
     },
-    submitBudget() {
-      if (!this.budget || this.budget <= 0) {
-        alert("Jumlah uang harus lebih besar dari 0.");
-        return;
-      }
-      alert(`Jumlah uang: Rp ${this.budget}`);
-    },
     submitSelections() {
       if (!this.budget || this.budget <= 0) {
         alert("Masukkan jumlah uang yang valid.");
@@ -80,6 +73,10 @@ export default {
           priority: item.priority,
         })),
       };
+
+      // Simpan budget dan selectedItems ke localStorage
+      localStorage.setItem("selectedItems", JSON.stringify(payload.items));
+      localStorage.setItem("budget", this.budget);
 
       fetch("/items/recommendation/", {
         method: "POST",
@@ -98,7 +95,6 @@ export default {
         .then(() => {
           this.$router.push({
             name: "Recommendation",
-            query: { budget: this.budget },
           });
         })
         .catch((error) => console.error("Error submitting selections:", error));

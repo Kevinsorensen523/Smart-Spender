@@ -75,10 +75,14 @@ def recommendation(request):
             budget = float(data.get("budget", 0))
             selected_items = data.get("items", [])
 
+            print(f"Budget received: {budget}")
+            print(f"Selected items received: {selected_items}")
+
             items = []
             for selected in selected_items:
                 item = Item.objects.filter(id=selected["id"]).first()
                 if item:
+                    print(f"Item found: {item.name}, Price: {item.price}")
                     items.append({
                         "id": item.id,
                         "name": item.name,
@@ -86,8 +90,10 @@ def recommendation(request):
                         "priority": selected["priority"],
                     })
 
-            # Hapus item yang tidak dapat dibeli
+            print(f"Items before filtering: {items}")
+
             items = [item for item in items if item["price"] <= budget]
+            print(f"Filtered items: {items}")
 
             if not items:
                 return JsonResponse({
@@ -101,7 +107,6 @@ def recommendation(request):
             def fitness(solution):
                 total_cost = sum(item["price"] * qty for item, qty in solution)
                 total_priority = sum(item["priority"] * qty for item, qty in solution)
-
                 if total_cost > budget:
                     return 0
                 return total_priority
@@ -111,25 +116,18 @@ def recommendation(request):
                 for _ in range(pop_size):
                     individual = []
                     for item in items:
-                        if item["price"] <= budget:
-                            max_qty = int(budget / item["price"])
-                            qty = random.randint(0, max_qty) if max_qty > 0 else 0
-                        else:
-                            qty = 0
-                        print(f"Generating individual for item: {item['name']}, Max Qty: {max_qty}, Qty: {qty}")
+                        max_qty = int(budget / item["price"]) if item["price"] <= budget else 0
+                        qty = random.randint(0, max_qty) if max_qty > 0 else 0
                         individual.append((item, qty))
                     population.append(individual)
+                print(f"Generated initial population of size {len(population)}")
                 return population
 
             def mutate(individual):
                 idx = random.randint(0, len(individual) - 1)
                 item, qty = individual[idx]
-                if item["price"] <= budget:
-                    max_qty = int(budget / item["price"])
-                    individual[idx] = (item, random.randint(0, max_qty) if max_qty > 0 else 0)
-                else:
-                    individual[idx] = (item, 0)
-                print(f"Mutating item: {item['name']}, Max Qty: {max_qty}, New Qty: {individual[idx][1]}")
+                max_qty = int(budget / item["price"]) if item["price"] <= budget else 0
+                individual[idx] = (item, random.randint(0, max_qty) if max_qty > 0 else 0)
                 return individual
 
             def crossover(parent1, parent2):
@@ -144,7 +142,7 @@ def recommendation(request):
 
             population = generate_population(population_size, items)
 
-            for _ in range(generations):
+            for generation in range(generations):
                 population = sorted(population, key=fitness, reverse=True)
                 next_generation = population[:10]
 
@@ -159,8 +157,10 @@ def recommendation(request):
                         mutate(individual)
 
                 population = next_generation
+                print(f"Generation {generation + 1} completed")
 
             best_solution = max(population, key=fitness)
+            print(f"Best solution: {best_solution}")
 
             recommendations = []
             total_cost = 0
@@ -176,14 +176,20 @@ def recommendation(request):
                         "total_price": total_price,
                     })
 
+            print(f"Total cost: {total_cost}, Remaining budget: {budget - total_cost}")
+            print(f"Recommendations: {recommendations}")
+
             return JsonResponse({
                 "recommendations": recommendations,
                 "budget": budget,
                 "total_cost": total_cost,
-                "remaining_budget": budget - total_cost
+                "remaining_budget": budget - total_cost,
+                "message": "Rekomendasi berhasil dihasilkan" if recommendations else "Tidak ada rekomendasi yang memenuhi anggaran",
             })
+
         else:
             return JsonResponse({"error": "Invalid request method"}, status=405)
+
     except Exception as e:
         print(f"Error: {e}")
         return JsonResponse({"error": str(e)}, status=500)
