@@ -68,12 +68,11 @@ export default {
       alert(`Jumlah uang: Rp ${this.budget}`);
     },
     submitSelections() {
-      if (this.selectedItems.length === 0) {
-        alert("Pilih setidaknya satu barang.");
+      if (!this.budget || this.budget <= 0) {
+        alert("Masukkan jumlah uang yang valid.");
         return;
       }
 
-      // Kirim data ke sistem untuk diproses
       const payload = {
         budget: this.budget,
         items: this.selectedItems.map((item) => ({
@@ -89,12 +88,17 @@ export default {
         },
         body: JSON.stringify(payload),
       })
-        .then((response) => response.json())
-        .then((data) => {
-          // Navigasikan ke halaman rekomendasi dengan hasil
+        .then((response) => {
+          if (!response.ok) {
+            console.error(`HTTP error! Status: ${response.status}`);
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(() => {
           this.$router.push({
             name: "Recommendation",
-            query: { recommendations: JSON.stringify(data.recommendations) },
+            query: { budget: this.budget },
           });
         })
         .catch((error) => console.error("Error submitting selections:", error));
