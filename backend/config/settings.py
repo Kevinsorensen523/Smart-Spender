@@ -37,6 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'items',
 ]
 
 MIDDLEWARE = [
@@ -75,8 +77,12 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'smart_spender_db',  # Nama database
+        'USER': 'root',              # Username MySQL
+        'PASSWORD': 'kevin123',     # Password MySQL
+        'HOST': 'localhost',         # Alamat host (gunakan IP jika remote)
+        'PORT': '3306',              # Port MySQL
     }
 }
 
