@@ -64,4 +64,29 @@ def import_csv(request):
             return JsonResponse({'message': 'Data berhasil diimpor'}, status=201)
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=400)
-    return JsonResponse({'error': 'File CSV diperlukan'}, status=400)
+        
+def recommendation(request):
+    budget = float(request.GET.get('budget', 0))
+    items = list(Item.objects.values())
+
+    # Contoh genetic algorithm sederhana
+    def fitness(solution):
+        total_cost = sum(item['price'] for item in solution)
+        if total_cost > budget:
+            return 0  # Tidak valid
+        return total_cost  # Semakin tinggi total biaya yang valid, semakin baik
+
+    def genetic_algorithm(items, budget):
+        from itertools import combinations
+        best_solution = []
+        best_fitness = 0
+        for r in range(1, len(items) + 1):
+            for solution in combinations(items, r):
+                score = fitness(solution)
+                if score > best_fitness:
+                    best_fitness = score
+                    best_solution = solution
+        return best_solution
+
+    recommendations = genetic_algorithm(items, budget)
+    return JsonResponse({'recommendations': recommendations})

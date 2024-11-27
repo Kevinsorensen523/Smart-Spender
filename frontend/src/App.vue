@@ -1,27 +1,22 @@
 <template>
   <div id="app">
-    <h1>Selamat Datang di Smart Spender</h1>
-    <ItemList />
+    <header>
+      <h1>Smart Spender</h1>
+    </header>
+
+    <nav>
+      <router-link to="/">Home</router-link>
+      <router-link to="/list-items">List Items</router-link>
+      <router-link to="/budget">Start</router-link>
+    </nav>
+
+    <main>
+      <router-view />
+      <!-- Router view di sini -->
+    </main>
+
+    <footer>
+      <p>&copy; 2024 Smart Spender</p>
+    </footer>
   </div>
 </template>
-
-<script>
-import ItemList from "./components/ItemList.vue"; // Impor komponen
-
-export default {
-  components: {
-    ItemList,
-  },
-};
-</script>
-
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
-</style>
